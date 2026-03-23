@@ -70,7 +70,7 @@ export default class PdfGenerator {
 
         <div class="header">
           <div>
-            <div class="logo-company">RELIÉ LABS S.A.C.</div>
+            <img src="file://${path.resolve(__dirname, 'public/assets/logo-relie.png')}" style="height: 80px; margin-bottom: 5px;" alt="Logo Relié Labs" />
             <div class="company-info">Av. principal 123, San Borja, Lima, Perú</div>
             <div class="company-info">Mail: facturacion@relielabs.pe | Tel: (+51) 987 654 321</div>
           </div>
