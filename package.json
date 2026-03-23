@@ -1,0 +1,22 @@
+{
+  "name": "facturacion-relie",
+  "version": "1.0.0",
+  "description": "Servicio de Emisión de Facturas Electrónicas - SUNAT",
+  "main": "src/test.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --env-file=.env src/test.js",
+    "start": "node --env-file=.env src/server.js",
+    "dev": "node --env-file=.env src/server.js"
+  },
+  "author": "Relié Labs S.A.C.",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "nodemailer": "^8.0.3",
+    "puppeteer": "^24.40.0",
+    "qrcode": "^1.5.4"
+  }
+}

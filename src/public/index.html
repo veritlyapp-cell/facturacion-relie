@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Portal | Relié Labs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #334155;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        .logo span { color: var(--accent); }
+
+        .card {
+            background: var(--card);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.2s;
+            box-sizing: border-box;
+            background: #fafafa;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .items-table {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+        }
+
+        .flex-end {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        /* Success/Loading states */
+        #status {
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .status-success { background: #dcfce7; color: #166534; display: block !important; }
+        .status-error { background: #fee2e2; color: #991b1b; display: block !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">RELIÉ <span>LABS</span></div>
+            <p>Smart Billing Portal v1.0</p>
+        </div>
+
+        <div class="card">
+            <form id="billingForm">
+                <div class="section-title">📄 Datos del Cliente</div>
+                <div class="grid">
+                    <div>
+                        <label>RUC del Cliente</label>
+                        <input type="text" id="ruc" placeholder="20XXXXXXXXX" value="20100070970">
+                    </div>
+                    <div>
+                        <label>Razon Social</label>
+                        <input type="text" id="razon" placeholder="SUPERMERCADOS PERUANOS S.A.">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label>Email para envío (Destino)</label>
+                        <input type="email" id="email" placeholder="cliente@correo.com">
+                    </div>
+                </div>
+
+                <div class="section-title">💼 Detalle de la Venta</div>
+                <div id="itemsContainer">
+                    <div class="grid" style="margin-bottom: 10px;">
+                        <div style="grid-column: span 1.5;">
+                            <label>Descripción del Servicio/Producto</label>
+                            <input type="text" id="desc" value="Suscripción Liah - Análisis IA">
+                        </div>
+                        <div>
+                            <label>Monto (PEN) sin IGV</label>
+                            <input type="number" id="precio" value="500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">🏦 Información de Pago (Cuentas Relié)</div>
+                <div class="grid">
+                    <div>
+                        <label>Banco Principal</label>
+                        <input type="text" id="banco1" value="BCP SOLES">
+                    </div>
+                    <div>
+                        <label>Nro Cuenta / CCI</label>
+                        <input type="text" id="cta1" value="191-2345678-0-12 (CCI: 002191...)">
+                    </div>
+                </div>
+
+                <div class="flex-end">
+                    <button type="button" class="btn btn-outline" onclick="preview()">Vista Previa</button>
+                    <button type="submit" class="btn btn-accent">🚀 Emitir y Enviar Factura</button>
+                </div>
+            </form>
+
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('billingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const status = document.getElementById('status');
+            
+            btn.disabled = true;
+            btn.innerText = "Procesando...";
+            status.className = "";
+            status.innerHTML = "⏳ Conectando con SUNAT y preparando documentos...";
+            status.style.display = "block";
+
+            const data = {
+                ruc: document.getElementById('ruc').value,
+                razonSocial: document.getElementById('razon').value,
+                email: document.getElementById('email').value,
+                items: [
+                    {
+                        descripcion: document.getElementById('desc').value,
+                        precioUnitario: parseFloat(document.getElementById('precio').value),
+                        cantidad: 1
+                    }
+                ],
+                cuentas: [
+                    { banco: document.getElementById('banco1').value, nro: document.getElementById('cta1').value, cci: '' }
+                ]
+            };
+
+            try {
+                const response = await fetch('/api/emitir', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const res = await response.json();
+
+                if (res.exito) {
+                    status.className = "status-success";
+                    status.innerHTML = `✅ Factura Aceptada por SUNAT: ${res.cdr.descripcion}.<br/>📧 Enviado a ${data.email}.`;
+                } else {
+                    status.className = "status-error";
+                    status.innerHTML = `❌ Error: ${res.error}`;
+                }
+            } catch (err) {
+                status.className = "status-error";
+                status.innerHTML = "❌ Error de conexión con el servidor.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🚀 Emitir y Enviar Factura";
+            }
+        });
+
+        function preview() {
+            alert('Generando vista previa del PDF... Revisa la carpeta /comprobantes');
+        }
+    </script>
+</body>
+</html>
