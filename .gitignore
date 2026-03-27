@@ -5,3 +5,5 @@ comprobantes/*.zip
 .env
 .DS_Store
 package-lock.json
+firebase-key.json
+

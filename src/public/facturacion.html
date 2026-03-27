@@ -147,13 +147,49 @@
 
         .status-success { background: #dcfce7; color: #166534; display: block !important; }
         .status-error { background: #fee2e2; color: #991b1b; display: block !important; }
+
+        /* Estilos Fase 2: Dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-card .val { font-size: 24px; font-weight: 800; color: var(--primary); }
+        .stat-card .lab { font-size: 12px; color: #64748b; text-transform: uppercase; }
+
+        .historial-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .historial-table th, .historial-table td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .historial-table th { color: #64748b; font-weight: 600; }
+        .badge { background: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+        .badge-success { background: #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <div class="logo">RELIÉ <span>LABS</span></div>
+            <img src="/assets/logo-relie.png" style="height: 100px; margin-bottom: 5px;" alt="Logo Relié Labs" />
             <p>Smart Billing Portal v1.0</p>
         </div>
 
@@ -208,6 +244,44 @@
             </form>
 
             <div id="status"></div>
+        </div>
+
+        <!-- SECCIÓN DE HISTORIAL Y ESTADÍSTICAS (FASE 2) -->
+        <div class="card" style="margin-top: 40px;">
+            <div class="section-title">📊 Dashboard de Relié Labs (Fase 2)</div>
+            
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="val" id="stat-total">S/ 0.00</div>
+                    <div class="lab">Total Facturado</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" id="stat-count">0</div>
+                    <div class="lab">Facturas Emitidas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" id="stat-clients">0</div>
+                    <div class="lab">Clientes Atendidos</div>
+                </div>
+            </div>
+
+            <div class="section-title">🕒 Historial de Comprobantes</div>
+            <div style="overflow-x: auto;">
+                <table class="historial-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Descargar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historialBody">
+                        <tr><td colspan="5" style="text-align: center;">Cargando historial...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -267,6 +341,51 @@
         function preview() {
             alert('Generando vista previa del PDF... Revisa la carpeta /comprobantes');
         }
+
+        // Cargar Estadísticas e Historial al iniciar
+        async function loadDashboard() {
+            try {
+                // 1. Stats
+                const statsRes = await fetch('/api/stats');
+                const stats = await statsRes.json();
+                document.getElementById('stat-total').innerText = `S/ ${stats.totalFacturado || '0.00'}`;
+                document.getElementById('stat-count').innerText = stats.numFacturas || '0';
+                
+                // 2. Historial
+                const histRes = await fetch('/api/historial');
+                const data = await histRes.json();
+                const body = document.getElementById('historialBody');
+                body.innerHTML = "";
+
+                if (data.length === 0) {
+                    body.innerHTML = "<tr><td colspan='5' style='text-align: center;'>Aún no hay facturas registradas.</td></tr>";
+                    return;
+                }
+
+                data.forEach(f => {
+                    const row = document.createElement('tr');
+                    const date = new Date(f.fecha).toLocaleDateString();
+                    row.innerHTML = `
+                        <td>${date}</td>
+                        <td><strong>${f.ruc}</strong><br/><small>${f.razonSocial}</small></td>
+                        <td style="font-weight:700;">S/ ${f.total.toFixed(2)}</td>
+                        <td><span class="badge badge-success">${f.status}</span></td>
+                        <td>
+                            <a href="${f.pdfUrl}" target="_blank" style="color:red; font-size:18px;" title="Descargar PDF">📄</a>
+                            <a href="${f.xmlUrl}" target="_blank" style="color:blue; font-size:18px; margin-left:10px;" title="Descargar XML">⚓</a>
+                        </td>
+                    `;
+                    body.appendChild(row);
+                });
+
+                document.getElementById('stat-clients').innerText = [...new Set(data.map(f => f.ruc))].length;
+
+            } catch (err) {
+                console.error("Error cargando Dashboard:", err);
+            }
+        }
+
+        loadDashboard();
     </script>
 </body>
 </html>

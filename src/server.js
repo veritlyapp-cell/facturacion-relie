@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 import FacturacionController from './facturacion.controller.js';
 import PdfGenerator from './pdf.generator.js';
 import MailService from './mail.service.js';
+import firebaseService from './firebase.service.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -103,17 +105,58 @@ app.post('/api/emitir', authMiddleware, async (req, res) => {
       pdfPath
     );
 
-    // 3. Enviar por Mail
+    // 3. Persistir en Firebase (Nube de Archivos y Base de Datos - Fase 2)
+    const firebaseResult = await firebaseService.registrarFactura(
+      { 
+        ruc: ruc, 
+        razonSocial: razonSocial, 
+        total: total, 
+        igv: igv, 
+        items: items, 
+        createdBy: req.cookies.user || 'admin_oscar' // Usamos la cookie del usuario logueado
+      },
+      pdfPath,
+      xmlPath
+    );
+
+    // 4. Enviar por Mail (Usando la URL de Firebase para mayor seguridad)
     if (email && email.trim() !== '') {
       await MailService.enviarFactura(email, { serie: 'F001', correlativo: clienteData.correlativo }, [pdfPath, xmlPath]);
     }
 
-    res.json({ exito: true, cdr: resultado.cdr, pdf: `${fileName}.pdf` });
+    res.json({ 
+      exito: true, 
+      cdr: resultado.cdr, 
+      pdf: `${fileName}.pdf`,
+      firebase: firebaseResult 
+    });
 
   } catch (error) {
     console.error('Error procesando emisión:', error);
     res.status(500).json({ exito: false, error: 'Ocurrió un error inesperado al procesar la factura.' });
   }
+});
+
+/** API: Obtener Historial de Facturas (Estadísticas del CEO) */
+app.get('/api/historial', authMiddleware, async (req, res) => {
+    try {
+        const snapshot = await firebaseService.db.collection('facturas').orderBy('fecha', 'desc').get();
+        const docs = [];
+        snapshot.forEach(doc => docs.push(doc.data()));
+        res.json(docs);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/** API: Obtener Estadísticas Rápidas */
+app.get('/api/stats', authMiddleware, async (req, res) => {
+    try {
+        const stats = await firebaseService.getEstadisticas();
+        res.json(stats);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.listen(PORT, () => {
