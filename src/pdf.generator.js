@@ -174,10 +174,27 @@ export default class PdfGenerator {
       </html>
     `;
 
-    // 4. Transformamos HTML a PDF elegante con Puppeteer
+    // 4. Transformamos HTML a PDF elegante con Puppeteer (Buscador inteligente para Render)
+    let executablePath = null;
+    
+    // Si estamos en Render, intentamos pre-ubicar el binario instalado por build.sh
+    if (process.env.PUPPETEER_CACHE_DIR) {
+        try {
+            // Intentamos encontrar el binario de forma recursiva o predefinida en la cache de Render
+            executablePath = '/opt/render/project/src/.cache/puppeteer/chrome/linux-126.0.6478.182/chrome-linux64/chrome';
+            if (!fs.existsSync(executablePath)) {
+                console.log('[PDF] No se encontró el binario en la ruta fija, intentando ruta por defecto...');
+                executablePath = null; 
+            }
+        } catch (e) {
+            executablePath = null;
+        }
+    }
+
     const browser = await puppeteer.launch({ 
+        executablePath: executablePath || undefined,
         headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] 
     });
     const page = await browser.newPage();
     
