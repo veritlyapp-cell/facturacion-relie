@@ -174,19 +174,35 @@ export default class PdfGenerator {
       </html>
     `;
 
-    // 4. Transformamos HTML a PDF elegante con Puppeteer (Buscador inteligente para Render)
+    // 4. Transformamos HTML a PDF elegante con Puppeteer (Buscador Dinámico para Render)
     let executablePath = null;
     
-    // Si estamos en Render, intentamos pre-ubicar el binario instalado por build.sh
     if (process.env.PUPPETEER_CACHE_DIR) {
         try {
-            // Intentamos encontrar el binario de forma recursiva o predefinida en la cache de Render
-            executablePath = '/opt/render/project/src/.cache/puppeteer/chrome/linux-126.0.6478.182/chrome-linux64/chrome';
-            if (!fs.existsSync(executablePath)) {
-                console.log('[PDF] No se encontró el binario en la ruta fija, intentando ruta por defecto...');
-                executablePath = null; 
+            // Buscamos dinámicamente cualquier carpeta dentro de .cache que contenga al binario chrome
+            const cacheRoot = process.env.PUPPETEER_CACHE_DIR;
+            const findChrome = (dir) => {
+                const files = fs.readdirSync(dir);
+                for (const file of files) {
+                    const fullPath = path.join(dir, file);
+                    if (fs.statSync(fullPath).isDirectory()) {
+                        const found = findChrome(fullPath);
+                        if (found) return found;
+                    } else if (file === 'chrome' && fullPath.includes('chrome-linux64')) {
+                        return fullPath;
+                    }
+                }
+                return null;
+            };
+
+            executablePath = findChrome(cacheRoot);
+            if (executablePath) {
+                console.log(`[PDF] Navegador encontrado dinámicamente en: ${executablePath}`);
+            } else {
+                console.log('[PDF] No se encontró el binario en la cache, intentando por defecto...');
             }
         } catch (e) {
+            console.warn('[PDF] Error buscando binario dinámico:', e.message);
             executablePath = null;
         }
     }
