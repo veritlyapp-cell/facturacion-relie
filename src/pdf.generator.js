@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
 import QRCode from 'qrcode';
 import { fileURLToPath } from 'node:url';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -174,45 +176,29 @@ export default class PdfGenerator {
       </html>
     `;
 
-    // 4. Transformamos HTML a PDF elegante con Puppeteer (Buscador Dinámico para Render)
-    let executablePath = null;
-    
-    if (process.env.PUPPETEER_CACHE_DIR) {
-        try {
-            // Buscamos dinámicamente cualquier carpeta dentro de .cache que contenga al binario chrome
-            const cacheRoot = process.env.PUPPETEER_CACHE_DIR;
-            const findChrome = (dir) => {
-                const files = fs.readdirSync(dir);
-                for (const file of files) {
-                    const fullPath = path.join(dir, file);
-                    if (fs.statSync(fullPath).isDirectory()) {
-                        const found = findChrome(fullPath);
-                        if (found) return found;
-                    } else if (file === 'chrome' && fullPath.includes('chrome-linux64')) {
-                        return fullPath;
-                    }
-                }
-                return null;
-            };
+    // 4. Transformamos HTML a PDF elegante con Puppeteer (Bala de Plata: Chromium Empaquetado)
+    let browserParams = {};
 
-            executablePath = findChrome(cacheRoot);
-            if (executablePath) {
-                console.log(`[PDF] Navegador encontrado dinámicamente en: ${executablePath}`);
-            } else {
-                console.log('[PDF] No se encontró el binario en la cache, intentando por defecto...');
-            }
-        } catch (e) {
-            console.warn('[PDF] Error buscando binario dinámico:', e.message);
-            executablePath = null;
-        }
+    if (process.env.RENDER || process.env.ON_RENDER) {
+        console.log('[PDF] Render Detectado: Extrayendo y usando Chromium Empaquetado (@sparticuz)...');
+        browserParams = {
+            args: [...chromium.args, '--disable-dev-shm-usage', '--no-sandbox'],
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+            ignoreHTTPSErrors: true
+        };
+    } else {
+        console.log('[PDF] Entorno Local Detectado: Usando Chrome por defecto...');
+        browserParams = {
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        };
     }
 
-    const browser = await puppeteer.launch({ 
-        executablePath: executablePath || undefined,
-        headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] 
-    });
+    const browser = await puppeteer.launch(browserParams);
     const page = await browser.newPage();
+
     
     await page.setContent(htmlTemplate, { waitUntil: 'networkidle0' });
     

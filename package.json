@@ -12,6 +12,7 @@
   "author": "Relié Labs S.A.C.",
   "license": "ISC",
   "dependencies": {
+    "@sparticuz/chromium": "^143.0.4",
     "body-parser": "^2.2.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
