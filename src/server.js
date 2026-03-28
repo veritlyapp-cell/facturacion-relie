@@ -106,18 +106,24 @@ app.post('/api/emitir', authMiddleware, async (req, res) => {
     );
 
     // 3. Persistir en Firebase (Nube de Archivos y Base de Datos - Fase 2)
-    const firebaseResult = await firebaseService.registrarFactura(
-      { 
-        ruc: ruc, 
-        razonSocial: razonSocial, 
-        total: total, 
-        igv: igv, 
-        items: items, 
-        createdBy: req.cookies.user || 'admin_oscar' // Usamos la cookie del usuario logueado
-      },
-      pdfPath,
-      xmlPath
-    );
+    let firebaseResult = { error: 'No se intentó.' };
+    try {
+        firebaseResult = await firebaseService.registrarFactura(
+          { 
+            ruc: ruc, 
+            razonSocial: razonSocial, 
+            total: total, 
+            igv: igv, 
+            items: items, 
+            createdBy: req.cookies.user || 'admin_oscar' // Usamos la cookie del usuario logueado
+          },
+          pdfPath,
+          xmlPath
+        );
+    } catch (fbError) {
+        console.warn('⚠️ Advertencia: Error en Firebase, pero la factura sigue siendo válida.', fbError.message);
+        firebaseResult = { error: 'Falló conexión con Firebase Storage/Firestore.' };
+    }
 
     // 4. Enviar por Mail (Usando la URL de Firebase para mayor seguridad)
     if (email && email.trim() !== '') {
