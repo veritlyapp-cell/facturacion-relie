@@ -23,7 +23,7 @@ class FirebaseService {
             if (serviceAccount) {
                 admin.initializeApp({
                     credential: admin.credential.cert(serviceAccount),
-                    storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
+                    storageBucket: process.env.FIREBASE_BUCKET || `${serviceAccount.project_id}.appspot.com`
                 });
                 console.log('✅ Firebase initialized (via ENV Config)');
                 this.initialized = true;
@@ -31,7 +31,7 @@ class FirebaseService {
                 const key = JSON.parse(fs.readFileSync('./firebase-key.json', 'utf8'));
                 admin.initializeApp({
                     credential: admin.credential.cert(key),
-                    storageBucket: `${key.project_id}.firebasestorage.app`
+                    storageBucket: process.env.FIREBASE_BUCKET || `${key.project_id}.appspot.com`
                 });
                 console.log('✅ Firebase initialized (via local key)');
                 this.initialized = true;
