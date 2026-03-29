@@ -14,7 +14,7 @@ export default class MailService {
     // Configuración de transporte (Ejemplo usando Variables de Entorno)
     // Para producción usa SendGrid, Amazon SES o Gmail App Password
     const transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST || 'smtp.zoho.com',
+      host: process.env.MAIL_HOST || 'smtppro.zoho.com', // Ajustado a modo Pro según tu captura
       port: parseInt(process.env.MAIL_PORT) || 587, // Puerto 587 es más robusto en la nube (STARTTLS)
       secure: false, // TLS dinámico
       auth: {
