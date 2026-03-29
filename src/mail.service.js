@@ -1,5 +1,6 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import path from 'node:path';
+import fs from 'node:fs';
 
 export default class MailService {
   /**
@@ -9,32 +10,27 @@ export default class MailService {
    * @param {Array<string>} adjuntos Rutas absolutas a los archivos
    */
   static async enviarFactura(emailDestino, facturaData, adjuntos) {
-    console.log(`[MAIL] Preparando envío a: ${emailDestino}...`);
+    console.log(`[MAIL] Preparando envío con RESEND API a: ${emailDestino}...`);
 
-    // Configuración de transporte (Ejemplo usando Variables de Entorno)
-    // Para producción usa SendGrid, Amazon SES o Gmail App Password
-    const transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST || 'smtppro.zoho.com', // Ajustado a modo Pro según tu captura
-      port: parseInt(process.env.MAIL_PORT) || 587, // Puerto 587 es más robusto en la nube (STARTTLS)
-      secure: false, // TLS dinámico
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
-      },
-      connectionTimeout: 15000, // Aumentado a 15 segundos
-      greetingTimeout: 10000,
-      socketTimeout: 20000,
-      tls: {
-          rejectUnauthorized: false // Ayuda en conexiones de nube inestables
-      },
-      debug: true,
-      logger: true
-    });
+    // Inyectamos la API Key que me enviaste o la tomamos del entorno
+    const resend = new Resend(process.env.RESEND_API_KEY || 're_UGSCcZDk_645vnknvPPV5ULru3noTuYLo');
 
     try {
-      const info = await transporter.sendMail({
-        from: `"Facturación Relié Labs" <${process.env.MAIL_USER}>`,
-        to: emailDestino,
+      // 1. Transformar rutas absolutas a Buffers para Resend
+      const attachmentsForResend = adjuntos.map(filePath => {
+        const fileData = fs.readFileSync(filePath);
+        return {
+          filename: path.basename(filePath),
+          content: fileData
+        };
+      });
+
+      // 2. Ejecutar envío a través del puerto 443 (HTTP/s) para eludir el bloqueo de Render
+      const { data, error } = await resend.emails.send({
+        // Si tienes verificado 'notreply.getliah.com', puedes cambiar "facturacion@relielabs.com" por "notreply..."
+        // Pero idealmente mantenlo así si ya validaste relielabs.com en tu panel de Resend:
+        from: 'Facturación Relié Labs <facturacion@relielabs.com>',
+        to: [emailDestino],
         subject: `Factura Electrónica ${facturaData.serie}-${facturaData.correlativo} - Relié Labs S.A.C.`,
         html: `
           <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
@@ -56,19 +52,19 @@ export default class MailService {
             </p>
           </div>
         `,
-        attachments: adjuntos.map(filePath => ({
-          filename: path.basename(filePath),
-          path: filePath
-        }))
+        attachments: attachmentsForResend
       });
 
-      console.log(`[MAIL] Factura enviada con éxito: ${info.messageId}`);
-      return true;
-    } catch (error) {
-      console.error('[MAIL] ❌ Error enviando correo:', error.message);
-      if (error.code === 'EAUTH') {
-        console.error('[MAIL] Error de Autenticación: Verifique MAIL_USER y MAIL_PASS (App Password).');
+      if (error) {
+        console.error('[MAIL] ❌ Error de la API de Resend:', error);
+        return false;
       }
+
+      console.log(`[MAIL] ✅ Factura disparada exitosamente a través de Resend (ID: ${data.id})`);
+      return true;
+
+    } catch (error) {
+      console.error('[MAIL] ❌ Excepción fatal enviando correo por Resend:', error.message);
       return false;
     }
   }
