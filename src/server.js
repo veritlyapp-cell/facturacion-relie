@@ -179,18 +179,24 @@ app.get('/api/ruc/:ruc', authMiddleware, async (req, res) => {
 
     try {
         const url = `https://api.rucdni.pe/api/v1/ruc/${ruc}?token=${token}`;
+        console.log(`[RUC-API] Consultando: ${ruc}...`);
+        
         const response = await fetch(url);
         const data = await response.json();
         
+        console.log(`[RUC-API] Respuesta de RucDni.pe:`, JSON.stringify(data));
+
         if (data && data.success) {
             res.json({
                 razon_social: data.data.nombre_o_razon_social,
-                direccion: data.data.direccion_completa || data.data.direccion
+                direccion: data.data.direccion_completa || data.data.direccion || 'Dirección no disponible'
             });
         } else {
-            res.status(404).json({ error: 'RUC no encontrado.' });
+            console.warn(`[RUC-API] ⚠️ RUC no encontrado o error de API:`, data.message || 'Sin mensaje');
+            res.status(404).json({ error: data.message || 'RUC no encontrado.' });
         }
     } catch (err) {
+        console.error(`[RUC-API] ❌ Error fatal en Proxy:`, err.message);
         res.status(500).json({ error: 'Error interno consultando RUC.' });
     }
 });
