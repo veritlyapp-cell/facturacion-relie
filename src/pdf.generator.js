@@ -70,6 +70,20 @@ export default class PdfGenerator {
     const empTelefono = process.env.EMPRESA_TELEFONO || '(+51) 987 654 321';
     const empLogo = process.env.EMPRESA_LOGO_URL || 'https://facturacion.relielabs.com/assets/logo-relie.png';
 
+    // Cuentas Bancarias Parametrizadas
+    const ctas = [
+        { 
+            banco: process.env.BANCO_1_NOMBRE || 'BCP SOLES', 
+            nro: process.env.BANCO_1_NUMERO || '191-2345678-0-12', 
+            cci: process.env.BANCO_1_CCI || '00219100234567801256' 
+        },
+        { 
+            banco: process.env.BANCO_2_NOMBRE || 'BBVA SOLES', 
+            nro: process.env.BANCO_2_NUMERO || '0011-0123-0100045678', 
+            cci: process.env.BANCO_2_CCI || '011-123-000100045678-01' 
+        }
+    ];
+
     // 1. Construir la cadena para el Código QR
     // Estándar SUNAT: RUC_EMISOR | TIPO_COMPROBANTE | SERIE | NUMERO | IGV | TOTAL | FECHA | TIPO_DOC_CLIENTE | NUM_DOC_CLIENTE
     const fechaEmision = new Date().toLocaleDateString('es-PE');
@@ -147,6 +161,10 @@ export default class PdfGenerator {
             <span class="client-label">Fecha de Emisión</span>
             <span class="client-value">${fechaEmision}</span>
           </div>
+          <div class="client-item" style="grid-column: span 2;">
+            <span class="client-label">Condiciones de Pago / Vencimiento</span>
+            <span class="client-value" style="color: #b91c1c;">${cliente.condiciones || 'CONTADO'}</span>
+          </div>
         </div>
 
         <table>
@@ -196,14 +214,11 @@ export default class PdfGenerator {
             🏦 INFORMACIÓN DE PAGO (${empNombre})
           </h4>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            ${(cuentasBancarias || [
-              { banco: 'BCP SOLES', nro: '191-2345678-0-12', cci: '00219100234567801256' },
-              { banco: 'BBVA SOLES', nro: '0011-0123-0100045678', cci: '011-123-000100045678-01' }
-            ]).map(cta => `
-              <div style="font-size: 12px; color: #1e293b;">
-                <strong style="display: block; color: #0f172a;">${cta.banco}:</strong>
+            ${ctas.map(cta => `
+              <div style="font-size: 11px; color: #1e293b; border: 1px solid #f1f5f9; padding: 10px; border-radius: 6px; background: #fff;">
+                <strong style="display: block; color: #0f172a; margin-bottom: 3px;">${cta.banco}:</strong>
                 Cuenta: ${cta.nro}<br/>
-                CCI: ${cta.cci}
+                CCI: <strong>${cta.cci}</strong>
               </div>
             `).join('')}
           </div>
