@@ -179,9 +179,9 @@ app.get('/api/ruc/:ruc', authMiddleware, async (req, res) => {
         console.log(`[CRM] Buscando RUC ${ruc} en memoria de Relié Labs...`);
         
         // 1. Buscamos en NUESTRA propia base de datos de Firebase si este cliente ya existe
+        // Simplificado (sin orderBy) para evitar errores de índices en Firebase
         const snapshot = await firebaseService.db.collection('facturas')
             .where('ruc', '==', ruc)
-            .orderBy('fecha', 'desc')
             .limit(1)
             .get();
 
