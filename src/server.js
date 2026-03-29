@@ -170,6 +170,31 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     }
 });
 
+/** API Proxy: Consultar RUC Protegido con Token (backend) */
+app.get('/api/ruc/:ruc', authMiddleware, async (req, res) => {
+    const { ruc } = req.params;
+    const token = process.env.RUC_API_TOKEN;
+
+    if (!token) return res.status(500).json({ error: 'Configuración de RUC API omitida en Render.' });
+
+    try {
+        const url = `https://api.rucdni.pe/api/v1/ruc/${ruc}?token=${token}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data.success) {
+            res.json({
+                razon_social: data.data.nombre_o_razon_social,
+                direccion: data.data.direccion_completa || data.data.direccion
+            });
+        } else {
+            res.status(404).json({ error: 'RUC no encontrado.' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Error interno consultando RUC.' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`\n🚀 PORTAL DE FACTURACIÓN RELIÉ LABS PROTEGIDO EN: http://localhost:${PORT}`);
 });

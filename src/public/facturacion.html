@@ -356,15 +356,15 @@
             btn.innerText = "⏳";
             
             try {
-                // Usamos una API pública de consulta (Ejemplo: PeruNow o similar)
-                const res = await fetch(`https://api.perunow.com/ruc/${ruc}`);
+                // Ahora consultamos a NUESTRA propia API Interna (Proxy) para más seguridad
+                const res = await fetch(`/api/ruc/${ruc}`);
                 const data = await res.json();
                 
                 if (data && data.razon_social) {
                     document.getElementById('razon').value = data.razon_social;
                     document.getElementById('direccion').value = data.direccion || '';
                 } else {
-                    alert("No se encontró información para ese RUC.");
+                    alert("No se encontró información. Revisa tu Token en Render.");
                 }
             } catch (err) {
                 console.error("Error RUC API:", err);
