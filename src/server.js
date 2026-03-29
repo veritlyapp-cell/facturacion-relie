@@ -64,12 +64,16 @@ app.post('/api/emitir', authMiddleware, async (req, res) => {
   try {
     console.log(`\n--- EMISIÓN SOLICITADA POR ADMIN: CLIENTE ${ruc} ---`);
 
+    // 0. Autonumeración: Consultar cuántas facturas hay para generar el correlativo
+    const stats = await firebaseService.getEstadisticas();
+    const nextCorrelativo = String(stats.numFacturas + 1).padStart(4, '0');
+
     const clienteData = {
       tipoDocumento: '6', // RUC
       numeroDocumento: ruc,
       razonSocial: razonSocial || 'CLIENTE DESCONOCIDO',
       direccion: direccion || 'Av. Cliente, Lima',
-      correlativo: String(Date.now()).slice(-4), // Correlativo temporal basado en tiempo
+      correlativo: nextCorrelativo, 
       moneda: 'PEN'
     };
 

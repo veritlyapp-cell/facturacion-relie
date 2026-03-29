@@ -67,6 +67,7 @@ export default class PdfGenerator {
     const empRuc = process.env.EMPRESA_RUC || '20615357848';
     const empDireccion = process.env.EMPRESA_DIRECCION || 'Calle San Martín 154, Int. 2, Miraflores, Lima, Perú';
     const empEmail = process.env.EMPRESA_EMAIL || 'facturacion@relielabs.com';
+    const empTelefono = process.env.EMPRESA_TELEFONO || '(+51) 987 654 321';
     const empLogo = process.env.EMPRESA_LOGO_URL || 'https://facturacion.relielabs.com/assets/logo-relie.png';
 
     // 1. Construir la cadena para el Código QR
@@ -117,11 +118,10 @@ export default class PdfGenerator {
       </head>
       <body>
 
-        <div class="header">
           <div>
             <img src="${empLogo}" style="height: 80px; margin-bottom: 5px;" alt="Logo Relié Labs" />
             <div class="company-info">${empDireccion}</div>
-            <div class="company-info">Mail: ${empEmail} | Tel: (+51) 987 654 321</div>
+            <div class="company-info">Mail: ${empEmail} | Tel: ${empTelefono}</div>
           </div>
           <div class="sunat-box">
             <h1>Factura Electrónica</h1>
@@ -163,7 +163,7 @@ export default class PdfGenerator {
             ${items.map(item => `
               <tr>
                 <td>${item.cantidad}</td>
-                <td>${item.codigo || '-'} / ${item.unidadMedida}</td>
+                <td>${item.codigo || '001'} / ${item.unidadMedida || 'ZZ'}</td>
                 <td>${item.descripcion}</td>
                 <td class="text-right">${cliente.moneda || 'S/'} ${item.precioUnitario.toFixed(2)}</td>
                 <td class="text-right">${cliente.moneda || 'S/'} ${(item.cantidad * item.precioUnitario).toFixed(2)}</td>

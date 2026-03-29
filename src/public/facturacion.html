@@ -199,7 +199,10 @@
                 <div class="grid">
                     <div>
                         <label>RUC del Cliente</label>
-                        <input type="text" id="ruc" placeholder="20XXXXXXXXX" value="20100070970">
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" id="ruc" placeholder="20XXXXXXXXX" value="20100070970">
+                            <button type="button" class="btn" style="padding: 10px;" onclick="consultarRuc()" title="Consultar RUC">🔍</button>
+                        </div>
                     </div>
                     <div>
                         <label>Razon Social</label>
@@ -343,6 +346,33 @@
                 btn.innerText = "🚀 Emitir y Enviar Factura";
             }
         });
+
+        async function consultarRuc() {
+            const ruc = document.getElementById('ruc').value;
+            if (ruc.length !== 11) return alert("El RUC debe tener 11 dígitos");
+            
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "⏳";
+            
+            try {
+                // Usamos una API pública de consulta (Ejemplo: PeruNow o similar)
+                const res = await fetch(`https://api.perunow.com/ruc/${ruc}`);
+                const data = await res.json();
+                
+                if (data && data.razon_social) {
+                    document.getElementById('razon').value = data.razon_social;
+                    document.getElementById('direccion').value = data.direccion || '';
+                } else {
+                    alert("No se encontró información para ese RUC.");
+                }
+            } catch (err) {
+                console.error("Error RUC API:", err);
+                alert("Error consultando el RUC (API limitada). Ingresa los datos manualmente.");
+            } finally {
+                btn.innerText = originalText;
+            }
+        }
 
         function preview() {
             alert('Generando vista previa del PDF... Revisa la carpeta /comprobantes');
