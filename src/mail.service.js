@@ -21,7 +21,12 @@ export default class MailService {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
       },
-      connectionTimeout: 10000, // 10 segundos para no bloquear el servidor
+      connectionTimeout: 15000, // Aumentado a 15 segundos
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
+      tls: {
+          rejectUnauthorized: false // Ayuda en conexiones de nube inestables
+      },
       debug: true,
       logger: true
     });
