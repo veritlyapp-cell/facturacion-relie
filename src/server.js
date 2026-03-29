@@ -59,7 +59,7 @@ app.get('/facturacion', authMiddleware, (req, res) => {
 const facturador = new FacturacionController();
 
 app.post('/api/emitir', authMiddleware, async (req, res) => {
-  const { ruc, razonSocial, email, items, cuentas } = req.body;
+  const { ruc, razonSocial, direccion, email, items, cuentas } = req.body;
 
   try {
     console.log(`\n--- EMISIÓN SOLICITADA POR ADMIN: CLIENTE ${ruc} ---`);
@@ -68,8 +68,8 @@ app.post('/api/emitir', authMiddleware, async (req, res) => {
       tipoDocumento: '6', // RUC
       numeroDocumento: ruc,
       razonSocial: razonSocial || 'CLIENTE DESCONOCIDO',
-      direccion: 'Av. Cliente, Lima',
-      correlativo: String(Date.now()).slice(-4), // Correlativo temporal basado en tiempo (Dina-mismo)
+      direccion: direccion || 'Av. Cliente, Lima',
+      correlativo: String(Date.now()).slice(-4), // Correlativo temporal basado en tiempo
       moneda: 'PEN'
     };
 
@@ -85,7 +85,8 @@ app.post('/api/emitir', authMiddleware, async (req, res) => {
     const igv = subTotal * 0.18;
     const total = subTotal + igv;
 
-    const fileName = `20615357848-01-F001-${clienteData.correlativo}`;
+    const rucEmisor = process.env.EMPRESA_RUC || '20615357848';
+    const fileName = `${rucEmisor}-01-F001-${clienteData.correlativo}`;
     const pdfPath = path.join(__dirname, '..', 'comprobantes', `${fileName}.pdf`);
     const xmlPath = path.join(__dirname, '..', 'comprobantes', `${fileName}.xml`);
 
@@ -97,7 +98,7 @@ app.post('/api/emitir', authMiddleware, async (req, res) => {
         cuentasBancarias: cuentas.map(c => ({ banco: c.banco, nro: c.nro, cci: c.cci }))
       },
       { 
-        rucEmisor: '20615357848', 
+        rucEmisor: rucEmisor, 
         serie: 'F001', 
         correlativo: clienteData.correlativo, 
         hash: resultado.hashFirma 

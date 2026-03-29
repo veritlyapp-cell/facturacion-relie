@@ -205,6 +205,10 @@
                         <label>Razon Social</label>
                         <input type="text" id="razon" placeholder="SUPERMERCADOS PERUANOS S.A.">
                     </div>
+                    <div>
+                        <label>Dirección Fiscal del Cliente</label>
+                        <input type="text" id="direccion" placeholder="Av. Los Pinos 123, Lima">
+                    </div>
                     <div style="grid-column: span 2;">
                         <label>Email para envío (Destino)</label>
                         <input type="email" id="email" placeholder="cliente@correo.com">
@@ -300,6 +304,7 @@
             const data = {
                 ruc: document.getElementById('ruc').value,
                 razonSocial: document.getElementById('razon').value,
+                direccion: document.getElementById('direccion').value,
                 email: document.getElementById('email').value,
                 items: [
                     {
