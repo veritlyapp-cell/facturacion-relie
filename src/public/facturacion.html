@@ -325,6 +325,7 @@
                 if (res.exito) {
                     status.className = "status-success";
                     status.innerHTML = `✅ Factura Aceptada por SUNAT: ${res.cdr.descripcion}.<br/>📧 Enviado a ${data.email}.`;
+                    loadDashboard(); // Recargar historial automáticamente
                 } else {
                     status.className = "status-error";
                     status.innerHTML = `❌ Error: ${res.error}`;
@@ -357,18 +358,25 @@
                 const body = document.getElementById('historialBody');
                 body.innerHTML = "";
 
-                if (data.length === 0) {
+                if (!data || data.length === 0) {
                     body.innerHTML = "<tr><td colspan='5' style='text-align: center;'>Aún no hay facturas registradas.</td></tr>";
                     return;
                 }
 
                 data.forEach(f => {
                     const row = document.createElement('tr');
-                    const date = new Date(f.fecha).toLocaleDateString();
+                    
+                    // Manejo robusto de fechas de Firestore
+                    let date = 'N/A';
+                    if (f.fecha) {
+                        const d = (f.fecha && f.fecha._seconds) ? new Date(f.fecha._seconds * 1000) : new Date(f.fecha);
+                        date = d.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    }
+                    
                     row.innerHTML = `
                         <td>${date}</td>
                         <td><strong>${f.ruc}</strong><br/><small>${f.razonSocial}</small></td>
-                        <td style="font-weight:700;">S/ ${f.total.toFixed(2)}</td>
+                        <td style="font-weight:700;">${f.moneda || 'S/'} ${f.total.toFixed(2)}</td>
                         <td><span class="badge badge-success">${f.status}</span></td>
                         <td>
                             <a href="${f.pdfUrl}" target="_blank" style="color:red; font-size:18px;" title="Descargar PDF">📄</a>

@@ -22,6 +22,36 @@ export default class PdfGenerator {
     const { cliente, items, resumen, cuentasBancarias } = facturaData;
     const { rucEmisor, serie, correlativo, hash } = sunatData;
 
+    // Helper para convertir números a letras (Simplificado para soles)
+    const numeroALetras = (num) => {
+      const unidades = ['','UN','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE'];
+      const decenas = ['','DIEZ','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+      const especiales = ['DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISEIS','DIECISIETE','DIECIOCHO','DIECINUEVE'];
+      const centenas = ['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+
+      let entero = Math.floor(num);
+      let centavos = Math.round((num - entero) * 100);
+      
+      let letras = '';
+      if (entero === 0) letras = 'CERO';
+      if (entero === 100) letras = 'CIEN';
+      else {
+          let c = Math.floor(entero / 100);
+          let d = Math.floor((entero % 100) / 10);
+          let u = entero % 10;
+          
+          letras += centenas[c] + ' ';
+          if (d === 1 && u > 0) letras += especiales[u] + ' ';
+          else {
+              letras += decenas[d] + (d > 0 && u > 0 ? ' Y ' : '') + unidades[u] + ' ';
+          }
+      }
+      
+      return `SON: ${letras.trim()} CON ${centavos.toString().padStart(2, '0')}/100 SOLES`;
+    };
+
+    const montoEnLetras = numeroALetras(resumen.total);
+
     // 1. Construir la cadena para el Código QR
     // Estándar SUNAT: RUC_EMISOR | TIPO_COMPROBANTE | SERIE | NUMERO | IGV | TOTAL | FECHA | TIPO_DOC_CLIENTE | NUM_DOC_CLIENTE
     const fechaEmision = new Date().toLocaleDateString('es-PE');
@@ -73,8 +103,8 @@ export default class PdfGenerator {
         <div class="header">
           <div>
             <img src="file://${path.resolve(__dirname, 'public/assets/logo-relie.png')}" style="height: 80px; margin-bottom: 5px;" alt="Logo Relié Labs" />
-            <div class="company-info">Av. principal 123, San Borja, Lima, Perú</div>
-            <div class="company-info">Mail: facturacion@relielabs.pe | Tel: (+51) 987 654 321</div>
+            <div class="company-info">Calle San Martín 154, Int. 2, Miraflores, Lima, Perú</div>
+            <div class="company-info">Mail: facturacion@relielabs.com | Tel: (+51) 987 654 321</div>
           </div>
           <div class="sunat-box">
             <h1>Factura Electrónica</h1>
@@ -142,7 +172,7 @@ export default class PdfGenerator {
           </div>
         </div>
 
-        <div class="numero-letras">SON: QUINIENTOS NOVENTA CON 00/100 SOLES</div>
+        <div class="numero-letras">${montoEnLetras}</div>
 
         <div style="margin-bottom: 30px; background: #fdf2f2; padding: 15px; border-radius: 8px; border: 1px dashed #f87171;">
           <h4 style="margin: 0 0 10px 0; color: #b91c1c; font-size: 14px; display: flex; align-items: center; gap: 8px;">

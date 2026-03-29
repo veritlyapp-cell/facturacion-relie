@@ -14,13 +14,15 @@ export default class MailService {
     // Configuración de transporte (Ejemplo usando Variables de Entorno)
     // Para producción usa SendGrid, Amazon SES o Gmail App Password
     const transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST || 'smtp.gmail.com',
-      port: process.env.MAIL_PORT || 465,
-      secure: true, 
+      host: process.env.MAIL_HOST || 'smtp.zoho.com', // Por defecto Zoho para Relié
+      port: parseInt(process.env.MAIL_PORT) || 465,
+      secure: process.env.MAIL_PORT === '465', 
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
-      }
+      },
+      debug: true, // Habilitamos debug para ver errores en los logs de Render
+      logger: true
     });
 
     try {
@@ -57,8 +59,10 @@ export default class MailService {
       console.log(`[MAIL] Factura enviada con éxito: ${info.messageId}`);
       return true;
     } catch (error) {
-      console.error('[MAIL] Error enviando correo:', error);
-      // No lanzamos error para no detener el proceso de flujo, pero retornamos false
+      console.error('[MAIL] ❌ Error enviando correo:', error.message);
+      if (error.code === 'EAUTH') {
+        console.error('[MAIL] Error de Autenticación: Verifique MAIL_USER y MAIL_PASS (App Password).');
+      }
       return false;
     }
   }
