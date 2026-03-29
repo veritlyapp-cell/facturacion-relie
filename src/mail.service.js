@@ -14,14 +14,15 @@ export default class MailService {
     // Configuración de transporte (Ejemplo usando Variables de Entorno)
     // Para producción usa SendGrid, Amazon SES o Gmail App Password
     const transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST || 'smtp.zoho.com', // Por defecto Zoho para Relié
-      port: parseInt(process.env.MAIL_PORT) || 465,
-      secure: process.env.MAIL_PORT === '465', 
+      host: process.env.MAIL_HOST || 'smtp.zoho.com',
+      port: parseInt(process.env.MAIL_PORT) || 587, // Puerto 587 es más robusto en la nube (STARTTLS)
+      secure: false, // TLS dinámico
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
       },
-      debug: true, // Habilitamos debug para ver errores en los logs de Render
+      connectionTimeout: 10000, // 10 segundos para no bloquear el servidor
+      debug: true,
       logger: true
     });
 
