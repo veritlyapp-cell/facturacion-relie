@@ -117,6 +117,7 @@ app.post('/api/emitir', authMiddleware, async (req, res) => {
           { 
             ruc: ruc, 
             razonSocial: razonSocial, 
+            direccion: direccion,
             total: total, 
             igv: igv, 
             items: items, 
@@ -170,39 +171,35 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     }
 });
 
-/** API Proxy: Consultar RUC Protegido con Token (backend) */
+/** API Proxy: Consultar RUC Protegido con Memoria CRM (Firebase) */
 app.get('/api/ruc/:ruc', authMiddleware, async (req, res) => {
     const { ruc } = req.params;
-    const token = process.env.RUC_API_TOKEN;
-
-    if (!token) return res.status(500).json({ error: 'Configuración de RUC API omitida en Render.' });
 
     try {
-        const url = `https://api.rucdni.pe/api/v1/ruc/${ruc}?token=${token}`;
-        console.log(`[RUC-API] Conectando a RucDni con el RUC ${ruc}...`);
+        console.log(`[CRM] Buscando RUC ${ruc} en memoria de Relié Labs...`);
         
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'Relié-Billing-Portal/1.0 (Render Node; oscar)',
-                'Accept': 'application/json'
-            }
-        });
-        const data = await response.json();
-        
-        console.log(`[RUC-API] Respuesta de RucDni.pe:`, JSON.stringify(data));
+        // 1. Buscamos en NUESTRA propia base de datos de Firebase si este cliente ya existe
+        const snapshot = await firebaseService.db.collection('facturas')
+            .where('ruc', '==', ruc)
+            .orderBy('fecha', 'desc')
+            .limit(1)
+            .get();
 
-        if (data && data.success) {
-            res.json({
-                razon_social: data.data.nombre_o_razon_social,
-                direccion: data.data.direccion_completa || data.data.direccion || 'Dirección no disponible'
+        if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+            console.log(`[CRM] ✅ Cliente encontrado en memoria: ${data.razonSocial}`);
+            return res.json({
+                razon_social: data.razonSocial,
+                direccion: data.direccion || 'Dirección guardada'
             });
-        } else {
-            console.warn(`[RUC-API] ⚠️ RUC no encontrado o error de API:`, data.message || 'Sin mensaje');
-            res.status(404).json({ error: data.message || 'RUC no encontrado.' });
         }
+
+        console.warn(`[CRM] 🔍 RUC ${ruc} es nuevo. No está en nuestra base de datos aún.`);
+        res.status(404).json({ error: 'Cliente nuevo. Ingresa los datos manualmente para guardarlos.' });
+
     } catch (err) {
-        console.error(`[RUC-API] ❌ Error fatal en Proxy:`, err.message);
-        res.status(500).json({ error: 'Error interno consultando RUC.' });
+        console.error(`[CRM] ❌ Error consultando base de datos interna:`, err.message);
+        res.status(500).json({ error: 'Error interno en la base de datos de clientes.' });
     }
 });
 

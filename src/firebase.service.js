@@ -80,6 +80,7 @@ class FirebaseService {
                 mesAnio: monthYear,
                 ruc: data.ruc,
                 razonSocial: data.razonSocial,
+                direccion: data.direccion || '',
                 total: parseFloat(data.total),
                 igv: parseFloat(data.igv),
                 moneda: data.moneda || 'PEN',
@@ -98,6 +99,7 @@ class FirebaseService {
             await clientRef.set({
                 ruc: data.ruc,
                 razonSocial: data.razonSocial,
+                direccion: data.direccion || '',
                 ultimaVenta: new Date(),
                 numVentas: admin.firestore.FieldValue.increment(1),
                 totalComprado: admin.firestore.FieldValue.increment(parseFloat(data.total))
