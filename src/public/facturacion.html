@@ -193,103 +193,142 @@
             <p>Smart Billing Portal v1.0</p>
         </div>
 
-        <div class="card">
-            <form id="billingForm">
-                <div class="section-title">📄 Datos del Cliente</div>
-                <div class="grid">
-                    <div>
-                        <label>RUC del Cliente</label>
-                        <div style="display: flex; gap: 5px;">
-                            <input type="text" id="ruc" placeholder="20XXXXXXXXX" value="20100070970">
-                            <button type="button" class="btn" style="padding: 10px;" onclick="consultarRuc()" title="Consultar RUC">🔍</button>
-                        </div>
-                    </div>
-                    <div>
-                        <label>Razon Social</label>
-                        <input type="text" id="razon" placeholder="SUPERMERCADOS PERUANOS S.A.">
-                    </div>
-                    <div>
-                        <label>Dirección Fiscal del Cliente</label>
-                        <input type="text" id="direccion" placeholder="Av. Los Pinos 123, Lima">
-                    </div>
-                    <div style="grid-column: span 2;">
-                        <label>Email para envío (Destino)</label>
-                        <input type="email" id="email" placeholder="cliente@correo.com">
-                    </div>
-                </div>
+        <nav class="nav-links" style="margin-bottom: 20px; display: flex; gap: 15px;">
+            <a href="#dashboard" onclick="showTab('dashboard')">Panel</a>
+            <a href="#emision" onclick="showTab('emision')">Nueva Factura</a>
+            <a href="#aprobaciones" id="tab-aprobaciones" style="display: none;" onclick="showTab('aprobaciones')">Pendientes Aprobación</a>
+            <a href="/">Cerrar Sesión</a>
+        </nav>
 
-                <div class="section-title">💼 Detalle de la Venta</div>
-                <div id="itemsContainer">
-                    <div class="grid" style="margin-bottom: 10px;">
-                        <div style="grid-column: span 1.5;">
-                            <label>Descripción del Servicio/Producto</label>
-                            <input type="text" id="desc" value="Suscripción Liah - Análisis IA">
+        <section id="tab-section-emision" class="tab-content">
+            <div class="card">
+                <form id="billingForm">
+                    <div class="section-title">📄 Datos del Cliente</div>
+                    <div class="grid">
+                        <div>
+                            <label>RUC del Cliente</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" id="ruc" placeholder="20XXXXXXXXX" value="20100070970">
+                                <button type="button" class="btn" style="padding: 10px;" onclick="consultarRuc()" title="Consultar RUC">🔍</button>
+                            </div>
                         </div>
                         <div>
-                            <label>Monto (PEN) sin IGV</label>
-                            <input type="number" id="precio" value="500">
+                            <label>Razon Social</label>
+                            <input type="text" id="razon" placeholder="SUPERMERCADOS PERUANOS S.A.">
+                        </div>
+                        <div>
+                            <label>Dirección Fiscal del Cliente</label>
+                            <input type="text" id="direccion" placeholder="Av. Los Pinos 123, Lima">
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <label>Email para envío (Destino)</label>
+                            <input type="email" id="email" placeholder="cliente@correo.com">
                         </div>
                     </div>
-                </div>
 
-                <div class="section-title">🏦 Información de Pago (Cuentas Relié)</div>
-                <div class="grid">
-                    <div>
-                        <label>Banco Principal</label>
-                        <input type="text" id="banco1" value="BCP SOLES">
+                    <div class="section-title">💼 Detalle de la Venta</div>
+                    <div id="itemsContainer">
+                        <div class="grid" style="margin-bottom: 10px;">
+                            <div style="grid-column: span 1.5;">
+                                <label>Descripción del Servicio/Producto</label>
+                                <input type="text" id="desc" value="Suscripción Liah - Análisis IA">
+                            </div>
+                            <div>
+                                <label>Monto (PEN) sin IGV</label>
+                                <input type="number" id="precio" value="500">
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label>Nro Cuenta / CCI</label>
-                        <input type="text" id="cta1" value="191-2345678-0-12 (CCI: 002191...)">
+
+                    <div class="section-title">🏦 Información de Pago (Cuentas Relié)</div>
+                    <div class="grid">
+                        <div>
+                            <label>Banco Principal</label>
+                            <input type="text" id="banco1" value="BCP SOLES">
+                        </div>
+                        <div>
+                            <label>Nro Cuenta / CCI</label>
+                            <input type="text" id="cta1" value="191-2345678-0-12 (CCI: 002191...)">
+                        </div>
                     </div>
-                </div>
 
-                <div class="flex-end">
-                    <button type="button" class="btn btn-outline" onclick="preview()">Vista Previa</button>
-                    <button type="submit" class="btn btn-accent">🚀 Emitir y Enviar Factura</button>
-                </div>
-            </form>
+                    <div class="flex-end">
+                        <button type="button" class="btn btn-outline" onclick="preview()">Vista Previa</button>
+                    </div>
 
-            <div id="status"></div>
-        </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn" style="background: #334155; flex: 1;" onclick="guardarBorrador()">📄 Guardar Borrador</button>
+                        <button type="submit" class="btn" style="flex: 2;">🚀 Emitir Factura Directa</button>
+                    </div>
+                </form>
+
+                <div id="status"></div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: APROBACIONES (SOLO CEO) -->
+        <section id="tab-section-aprobaciones" class="tab-content" style="display: none;">
+            <div class="card">
+                <h2 style="color: #b91c1c;">🏦 Bandeja de Pendientes por Aprobar (Modo CEO)</h2>
+                <p>Aquí aparecen los borradores que tu equipo ha preparado. Al aprobar, se emiten legalmente a SUNAT.</p>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="text-align: left; background: #fdf2f2;">
+                                <th style="padding: 10px;">Creado Por</th>
+                                <th style="padding: 10px;">RUC</th>
+                                <th style="padding: 10px;">Razón Social</th>
+                                <th style="padding: 10px;">Importe</th>
+                                <th style="padding: 10px;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-borradores">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
         <!-- SECCIÓN DE HISTORIAL Y ESTADÍSTICAS (FASE 2) -->
-        <div class="card" style="margin-top: 40px;">
-            <div class="section-title">📊 Dashboard de Relié Labs (Fase 2)</div>
-            
-            <div class="dashboard-grid">
-                <div class="stat-card">
-                    <div class="val" id="stat-total">S/ 0.00</div>
-                    <div class="lab">Total Facturado</div>
+        <section id="tab-section-dashboard" class="tab-content">
+            <div class="card" style="margin-top: 40px;">
+                <div class="section-title">📊 Dashboard de Relié Labs (Fase 2)</div>
+                
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="val" id="stat-total">S/ 0.00</div>
+                        <div class="lab">Total Facturado</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="val" id="stat-count">0</div>
+                        <div class="lab">Facturas Emitidas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="val" id="stat-clients">0</div>
+                        <div class="lab">Clientes Atendidos</div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="val" id="stat-count">0</div>
-                    <div class="lab">Facturas Emitidas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="val" id="stat-clients">0</div>
-                    <div class="lab">Clientes Atendidos</div>
-                </div>
-            </div>
 
-            <div class="section-title">🕒 Historial de Comprobantes</div>
-            <div style="overflow-x: auto;">
-                <table class="historial-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th>Descargar</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historialBody">
-                        <tr><td colspan="5" style="text-align: center;">Cargando historial...</td></tr>
-                    </tbody>
-                </table>
+                <div class="section-title">🕒 Historial de Comprobantes</div>
+                <div style="overflow-x: auto;">
+                    <table class="historial-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Descargar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historialBody">
+                            <tr><td colspan="5" style="text-align: center;">Cargando historial...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <script>
@@ -346,6 +385,98 @@
                 btn.innerText = "🚀 Emitir y Enviar Factura";
             }
         });
+
+        async function guardarBorrador() {
+            const data = {
+                ruc: document.getElementById('ruc').value,
+                razonSocial: document.getElementById('razon').value,
+                direccion: document.getElementById('direccion').value,
+                email: document.getElementById('email').value,
+                items: [
+                    {
+                        descripcion: document.getElementById('desc').value,
+                        cantidad: 1,
+                        precioUnitario: parseFloat(document.getElementById('precio').value),
+                        unidadMedida: 'ZZ'
+                    }
+                ],
+                cuentas: [
+                    { banco: 'BCP SOLES', nro: '191-2345678-0-12', cci: '00219100234567801256' }
+                ]
+            };
+
+            const res = await fetch('/api/borrador', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                alert("✅ Borrador guardado. Pendiente de aprobación por el CEO.");
+                showTab('dashboard');
+            } else {
+                alert("❌ Error al guardar borrador.");
+            }
+        }
+
+        // Lógica de Tabs y Roles
+        const role = document.cookie.split('; ').find(row => row.startsWith('role='))?.split('=')[1];
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.getElementById(`tab-section-${tabName}`).style.display = 'block';
+            
+            if (tabName === 'dashboard') loadDashboard();
+            if (tabName === 'aprobaciones') loadBorradores();
+        }
+
+        if (role === 'super_admin') {
+            document.getElementById('tab-aprobaciones').style.display = 'block';
+        }
+
+        async function loadBorradores() {
+            const res = await fetch('/api/historial');
+            const allDocs = await res.json();
+            const drafts = allDocs.filter(f => f.status === 'BORRADOR');
+            
+            const lista = document.getElementById('lista-borradores');
+            lista.innerHTML = drafts.map(d => `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px;">${d.creadoPor || 'Anon'}</td>
+                    <td style="padding: 10px;">${d.ruc}</td>
+                    <td style="padding: 10px;">${d.razonSocial}</td>
+                    <td style="padding: 10px;">S/ ${d.total.toFixed(2)}</td>
+                    <td style="padding: 10px;">
+                        <button class="btn" style="padding: 5px 10px; background: #eab308; font-size: 11px;" onclick="aprobarFactura('${d.id}')">⚖️ Aprobar y Emitir</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function aprobarFactura(id) {
+            if (!confirm("¿Seguro que deseas emitir esta factura legalmente a SUNAT?")) return;
+            
+            const btn = event.target;
+            btn.innerText = "Emitiendo...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/approve/${id}`, { method: 'POST' });
+                const result = await res.json();
+                
+                if (result.exito) {
+                    alert("✅ ¡Aprobado! Factura emitida y enviada al cliente.");
+                    showTab('aprobaciones');
+                } else {
+                    alert("❌ Error SUNAT: " + result.error);
+                }
+            } catch (err) {
+                alert("❌ Fallo en la comunicación con el servidor.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "⚖️ Aprobar y Emitir";
+            }
+        }
 
         async function consultarRuc() {
             const ruc = document.getElementById('ruc').value;
