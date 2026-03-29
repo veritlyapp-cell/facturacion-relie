@@ -12,8 +12,8 @@ export default class MailService {
   static async enviarFactura(emailDestino, facturaData, adjuntos) {
     console.log(`[MAIL] Preparando envío con RESEND API a: ${emailDestino}...`);
 
-    // Inyectamos la API Key que me enviaste o la tomamos del entorno
-    const resend = new Resend(process.env.RESEND_API_KEY || 're_UGSCcZDk_645vnknvPPV5ULru3noTuYLo');
+    // 1. Inicialización de Resend (Modo Profesional con Variable de Entorno)
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     try {
       // 1. Transformar rutas absolutas a Buffers para Resend
