@@ -179,9 +179,14 @@ app.get('/api/ruc/:ruc', authMiddleware, async (req, res) => {
 
     try {
         const url = `https://api.rucdni.pe/api/v1/ruc/${ruc}?token=${token}`;
-        console.log(`[RUC-API] Consultando: ${ruc}...`);
+        console.log(`[RUC-API] Conectando a RucDni con el RUC ${ruc}...`);
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Relié-Billing-Portal/1.0 (Render Node; oscar)',
+                'Accept': 'application/json'
+            }
+        });
         const data = await response.json();
         
         console.log(`[RUC-API] Respuesta de RucDni.pe:`, JSON.stringify(data));
