@@ -364,7 +364,7 @@
                     document.getElementById('razon').value = data.razon_social;
                     document.getElementById('direccion').value = data.direccion || '';
                 } else {
-                    alert("No se encontró información. Revisa tu Token en Render.");
+                    alert("🔍 Cliente Nuevo: Este RUC aún no está en tu base de datos de Relié Labs. Ingresa los datos manualmente y se guardarán para la próxima vez.");
                 }
             } catch (err) {
                 console.error("Error RUC API:", err);
