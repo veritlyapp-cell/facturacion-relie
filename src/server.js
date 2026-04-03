@@ -340,6 +340,53 @@ app.get('/api/ruc/:ruc', authMiddleware, async (req, res) => {
     }
 });
 
+/** API: Crear nuevo usuario (Solo Super Admin) */
+app.post('/api/users/create', authMiddleware, async (req, res) => {
+    if (req.user.role !== 'super_admin') {
+        return res.status(403).json({ error: 'Acceso denegado. Solo el CEO puede gestionar usuarios.' });
+    }
+
+    const { username, password, displayName, role } = req.body;
+
+    if (!username || !password) return res.status(400).json({ error: 'Usuario y contraseña son requeridos.' });
+
+    try {
+        console.log(`[USER-MGMT] Creando nuevo usuario: ${username}...`);
+        
+        await firebaseService.db.collection('users').doc(username).set({
+            uid: username,
+            displayName: displayName || username,
+            role: role || 'admin',
+            status: 'active',
+            password: password,
+            createdAt: new Date()
+        });
+
+        res.json({ ok: true, message: 'Usuario creado exitosamente.' });
+    } catch (error) {
+        console.error('[USER-MGMT] ❌ Error creando usuario:', error.message);
+        res.status(500).json({ error: 'Error interno guardando usuario.' });
+    }
+});
+
+/** API: Listar usuarios (Solo Super Admin) */
+app.get('/api/users/list', authMiddleware, async (req, res) => {
+    if (req.user.role !== 'super_admin') return res.status(403).json({ error: 'Acceso denegado.' });
+
+    try {
+        const snapshot = await firebaseService.db.collection('users').get();
+        const users = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            delete data.password; // No enviar la contraseña al frontend
+            users.push(data);
+        });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`\n🚀 PORTAL DE FACTURACIÓN RELIÉ LABS PROTEGIDO EN: http://localhost:${PORT}`);
 });

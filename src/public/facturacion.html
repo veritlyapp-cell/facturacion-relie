@@ -211,6 +211,7 @@
             <a href="#dashboard" onclick="showTab('dashboard')">Panel</a>
             <a href="#emision" onclick="showTab('emision')">Nueva Factura</a>
             <a href="#aprobaciones" id="tab-aprobaciones" style="display: none;" onclick="showTab('aprobaciones')">Pendientes Aprobación</a>
+            <a href="#usuarios" id="tab-usuarios" style="display: none;" onclick="showTab('usuarios')">Gestión Usuarios</a>
             <a href="/">Cerrar Sesión</a>
         </nav>
 
@@ -294,6 +295,54 @@
                             </tr>
                         </thead>
                         <tbody id="lista-borradores">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: GESTIÓN DE USUARIOS (SOLO CEO) -->
+        <section id="tab-section-usuarios" class="tab-content" style="display: none;">
+            <div class="card">
+                <h2>👥 Gestión de Equipo Relié Labs</h2>
+                <div class="grid" style="margin-bottom: 30px; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                    <div>
+                        <label>ID de Usuario</label>
+                        <input type="text" id="new-username" placeholder="ejm: oscar_dev">
+                    </div>
+                    <div>
+                        <label>Contraseña</label>
+                        <input type="password" id="new-password" placeholder="********">
+                    </div>
+                    <div>
+                        <label>Nombre a Mostrar</label>
+                        <input type="text" id="new-displayname" placeholder="Oscar CEO">
+                    </div>
+                    <div>
+                        <label>Rol</label>
+                        <select id="new-role">
+                            <option value="admin">Administrador (Emite/Guarda)</option>
+                            <option value="super_admin">Super Admin (Aprueba/Gestiona)</option>
+                        </select>
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <button class="btn" style="width: 100%;" onclick="crearUsuario()">➕ Crear y Activar Usuario</button>
+                    </div>
+                </div>
+
+                <h3>Lista de Usuarios Activos</h3>
+                <div style="overflow-x: auto;">
+                    <table class="historial-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-usuarios">
                             <!-- Se llena dinámicamente -->
                         </tbody>
                     </table>
@@ -436,10 +485,51 @@
             
             if (tabName === 'dashboard') loadDashboard();
             if (tabName === 'aprobaciones') loadBorradores();
+            if (tabName === 'usuarios') loadUsuarios();
         }
 
         if (role === 'super_admin') {
             document.getElementById('tab-aprobaciones').style.display = 'block';
+            document.getElementById('tab-usuarios').style.display = 'block';
+        }
+
+        async function loadUsuarios() {
+            const res = await fetch('/api/users/list');
+            const users = await res.json();
+            const lista = document.getElementById('lista-usuarios');
+            lista.innerHTML = users.map(u => `
+                <tr>
+                    <td><strong>${u.uid}</strong></td>
+                    <td>${u.displayName}</td>
+                    <td><span class="badge ${u.role === 'super_admin' ? 'badge-success' : ''}">${u.role}</span></td>
+                    <td>${u.status}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function crearUsuario() {
+            const username = document.getElementById('new-username').value;
+            const password = document.getElementById('new-password').value;
+            const displayName = document.getElementById('new-displayname').value;
+            const role = document.getElementById('new-role').value;
+
+            if (!username || !password) return alert("Usuario y contraseña requeridos.");
+
+            const res = await fetch('/api/users/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, displayName, role })
+            });
+
+            if (res.ok) {
+                alert("✅ Usuario creado con éxito.");
+                loadUsuarios();
+                document.getElementById('new-username').value = "";
+                document.getElementById('new-password').value = "";
+            } else {
+                const err = await res.json();
+                alert("❌ Error: " + err.error);
+            }
         }
 
         async function loadBorradores() {
